@@ -2,6 +2,7 @@ var gStdscr;
 var gStdcon;
 var gDeck;
 var gKamoImg;
+var gCursorFocus = -1;
 
 function Card (x, y, r, id) {
 
@@ -76,10 +77,47 @@ function drawgDeckFull () {
         }
         gStdcon.rotate(Math.PI / 2);
     }
+    
+    /* Draw a grid:
+     * We'll use this as a way of highlighting cards later */
+    gStdcon.beginPath();
+    for (var i = 0; i <= 450; i += 150) {
+        gStdcon.moveTo(i, 0);
+        gStdcon.lineTo(i, 450);
+        gStdcon.moveTo(0, i);
+        gStdcon.lineTo(450, i);
+    }
+    gStdcon.strokeStyle = "grey";
+    gStdcon.stroke();
+
 }
 
 function handleEventClick(e) {
-// NOT IMPLEMENTED
+    function drawSelection (cardNumber, color) {
+        var x = (cardNumber % 3) * 150;
+        var y = Math.floor(cardNumber / 3) * 150;
+        gStdcon.strokeStyle = color;
+        gStdcon.strokeRect(x, y, 150, 150);
+    }
+
+    var newFocus = Math.floor(e.pageX / 150) + Math.floor(e.pageY / 150) * 3;
+
+    /* Clicking a Card twice will unselect it: */
+    if (gCursorFocus == newFocus) {
+        drawSelection(newFocus, "white");
+        gCursorFocus = -1;
+        return;
+    }
+
+    /* If no Card is selected: Select it: */
+    if (gCursorFocus == -1) {
+        drawSelection(newFocus, "black");
+        gCursorFocus = newFocus;
+        return;
+    }
+
+    /* If a Card is already selected, swap them: */
+    // NOT IMPLEMENTED
 }
 
 function initMain() {
@@ -103,5 +141,6 @@ function initMain() {
         createNewDeck();
         drawgDeckFull();
      }
+
 }
 
