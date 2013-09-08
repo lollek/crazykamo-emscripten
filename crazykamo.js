@@ -1,3 +1,7 @@
+/* Created by Olle Kvarnstrom 
+ * Date: 2013-09-08 
+ * Kamo.png image made by Sofie Aid */
+
 var gStdscr;
 var gStdcon;
 var gDeck;
