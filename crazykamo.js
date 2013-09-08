@@ -4,19 +4,22 @@ var gDeck;
 var gKamoImg;
 var gCursorFocus = -1;
 
-function Card (x, y, r, id) {
+/** Card()
+ * Cards are the moveable objects in this game
+ * @param pos position on the game board (0-8)
+ * @param r rotation of card
+ * @param id position on the source image (0-8) */
+function Card(pos, r, id) {
 
-    /* I've heard this is needed in case you'd ever forget the "new" */
-    if (!this instanceof Card)
-        return new Card(x, y, r, id);
-
-    this.x = x;   // 0 = Left, 1 = Middle, 2 = Right
-    this.y = y;   // 0 = Up,   1 = Middle, 2 = Down
-    this.r = r;   // Rotations (e.g. 2 -> rotated 90 degrees 2 times)
-    this.id = id; // Which card in the source image to blit from
+    this.pos = pos;
+    this.r = r;
+    this.id = id;
 }
 
+/** createNewDeck() 
+ * shuffles the deck of Cards (gDeck) */
 function createNewDeck () {
+
     /* List of available ids:
      * We'll shuffle it and then pop to get a random id each time
      * Since no one has bothered to implement a shuffle method in js
@@ -29,47 +32,60 @@ function createNewDeck () {
         IDs[j] = tmp;
     }
     
-    /* Every created card gets a random id: */
-    gDeck = [new Card(0, 0, Math.floor(Math.random() * 4), IDs.pop())
-            ,new Card(0, 1, Math.floor(Math.random() * 4), IDs.pop())
-            ,new Card(0, 2, Math.floor(Math.random() * 4), IDs.pop())
-            ,new Card(1, 0, Math.floor(Math.random() * 4), IDs.pop())
-            ,new Card(1, 1, Math.floor(Math.random() * 4), IDs.pop())
-            ,new Card(1, 2, Math.floor(Math.random() * 4), IDs.pop())
-            ,new Card(2, 0, Math.floor(Math.random() * 4), IDs.pop())
-            ,new Card(2, 1, Math.floor(Math.random() * 4), IDs.pop())
-            ,new Card(2, 2, Math.floor(Math.random() * 4), IDs.pop())
+    /* Every created card gets a random id and rotation: */
+    gDeck = [new Card(i++, Math.floor(Math.random() * 4), IDs.pop())
+            ,new Card(i++, Math.floor(Math.random() * 4), IDs.pop())
+            ,new Card(i++, Math.floor(Math.random() * 4), IDs.pop())
+            ,new Card(i++, Math.floor(Math.random() * 4), IDs.pop())
+            ,new Card(i++, Math.floor(Math.random() * 4), IDs.pop())
+            ,new Card(i++, Math.floor(Math.random() * 4), IDs.pop())
+            ,new Card(i++, Math.floor(Math.random() * 4), IDs.pop())
+            ,new Card(i++, Math.floor(Math.random() * 4), IDs.pop())
+            ,new Card(i++, Math.floor(Math.random() * 4), IDs.pop())
             ];
 }
 
-function drawgDeckFull () {
-    /* Draw all cards in gDeck to canvas 
-     * Since I have no idea how to rotate an Image object we'll 
-     * rotate the canvas 4 times and blit the relevant cards on 
-     * the relevant rotation */
+/** drawOutline() 
+ * Draw a nice box around a Card
+ * @param cardNumber Card.pos of the card we'll outline
+ * @param color color of the border */
+function drawOutline (cardNumber, color) {
+    var x = (cardNumber % 3) * 150;
+    var y = Math.floor(cardNumber / 3) * 150;
+    gStdcon.strokeStyle = color;
+    gStdcon.strokeRect(x, y, 150, 150);
+}
 
+/** drawDeck() 
+ * Draw all cards to the canvas 
+ * @param drawList list of cards to draw 
+ *
+ * Since I have no idea how to rotate an Image object we'll 
+ * rotate the canvas 4 times and blit the relevant cards on 
+ * the relevant rotation */
+function drawDeck (drawList) {
     var sx, sy, tx, ty;
     for (var r = 0; r < 4; r++) {
-        for (var i = 0; i < gDeck.length; i++) {
-            if (gDeck[i].r == r) {
-                sx = (gDeck[i].id % 3) * 150;
-                sy = Math.floor(gDeck[i].id / 3) * 150;
+        for (var i = drawList.length -1; i >= 0; i--) {
+            if (drawList[i].r == r) {
+                sx = (drawList[i].id % 3) * 150;
+                sy = Math.floor(drawList[i].id / 3) * 150;
                 switch(r) {
                 case 0:
-                    tx = gDeck[i].x * 150;
-                    ty = gDeck[i].y * 150;
+                    tx = (drawList[i].pos % 3) * 150;
+                    ty = Math.floor(drawList[i].pos / 3) * 150;
                     break;
                 case 1:
-                    tx = gDeck[i].y * 150;
-                    ty = -(gDeck[i].x +1) * 150;
+                    tx = Math.floor(drawList[i].pos / 3) * 150;
+                    ty = -((drawList[i].pos % 3) +1) * 150;
                     break;
                 case 2:
-                    tx = -(gDeck[i].x +1) * 150;
-                    ty = -(gDeck[i].y +1) * 150;
+                    tx = -((drawList[i].pos % 3) +1) * 150;
+                    ty = -(Math.floor(drawList[i].pos / 3) +1) * 150;
                     break;
                 case 3:
-                    tx = -(gDeck[i].y +1) * 150;
-                    ty = gDeck[i].x * 150;
+                    tx = -(Math.floor(drawList[i].pos / 3) +1) * 150;
+                    ty = (drawList[i].pos % 3) * 150;
                     break;
                 }
                 gStdcon.drawImage(gKamoImg, sx, sy, 150, 150, tx, ty, 150, 150);
@@ -92,32 +108,41 @@ function drawgDeckFull () {
 
 }
 
+/** handleEventClick()
+ * Pretty self explanatory, handle mouseclick events
+ * @e event */
 function handleEventClick(e) {
-    function drawSelection (cardNumber, color) {
-        var x = (cardNumber % 3) * 150;
-        var y = Math.floor(cardNumber / 3) * 150;
-        gStdcon.strokeStyle = color;
-        gStdcon.strokeRect(x, y, 150, 150);
-    }
-
     var newFocus = Math.floor(e.pageX / 150) + Math.floor(e.pageY / 150) * 3;
 
-    /* Clicking a Card twice will unselect it: */
+    /* Clicking a Card twice will rotate it clockwise: */
     if (gCursorFocus == newFocus) {
-        drawSelection(newFocus, "white");
-        gCursorFocus = -1;
-        return;
-    }
+        for (var i = gDeck.length -1; i >= 0; i--)
+            if (gCursorFocus == gDeck[i].pos) {
+                gDeck[i].r = (gDeck[i].r + 5) % 4;
+                drawDeck(gDeck);
+                gCursorFocus = -1;
+                break;
+            }
 
     /* If no Card is selected: Select it: */
-    if (gCursorFocus == -1) {
-        drawSelection(newFocus, "black");
+    } else if (gCursorFocus == -1) {
+        drawOutline(newFocus, "black");
         gCursorFocus = newFocus;
-        return;
-    }
 
     /* If a Card is already selected, swap them: */
-    // NOT IMPLEMENTED
+    } else {
+        for (var i = gDeck.length -1 ; i >= 0 ; i--) {
+            if (gCursorFocus == gDeck[i].pos)
+                var cardPos1 = i;
+            else if (newFocus == gDeck[i].pos)
+                var cardPos2 = i;
+        }
+        var tmp = gDeck[cardPos1].pos;
+        gDeck[cardPos1].pos = gDeck[cardPos2].pos
+        gDeck[cardPos2].pos = tmp;
+        drawDeck(gDeck);
+        gCursorFocus = -1;
+    }
 }
 
 function initMain() {
@@ -139,7 +164,7 @@ function initMain() {
 
         /* Init and draw gDeck */
         createNewDeck();
-        drawgDeckFull();
+        drawDeck(gDeck);
      }
 
 }
