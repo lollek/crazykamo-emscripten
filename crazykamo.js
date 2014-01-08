@@ -163,12 +163,15 @@ function handleEventClick(e) {
     }
 }
 
-function initMain() {
+function initMain(imagePath) {
     /* Load image of chameleons: 
      * We MUST wait for the image to load before continuing 
      * otherwise it will just ignore the image for the rest of the session */
+    if (arguments.length == 0)
+        imagePath = "kamo.png";
+
     KAMO_IMAGE = new Image();
-    KAMO_IMAGE.src = "kamo.png";
+    KAMO_IMAGE.src = imagePath;
     KAMO_IMAGE.onload = function () {
 
         /* Create canvas to draw on: */
