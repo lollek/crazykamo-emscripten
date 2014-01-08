@@ -180,7 +180,6 @@ function initMain(canvasName, imagePath) {
         canvas.height = CANVAS_HEIGHT
         canvas.addEventListener("click", handleEventClick, false);
         canvas.focus();
-        document.body.appendChild(canvas);
         gCanvasContext = canvas.getContext("2d");
 
         /* Init and draw gDeck */
