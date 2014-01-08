@@ -163,11 +163,11 @@ function handleEventClick(e) {
     }
 }
 
-function initMain(imagePath) {
+function initMain(canvasName, imagePath) {
     /* Load image of chameleons: 
      * We MUST wait for the image to load before continuing 
      * otherwise it will just ignore the image for the rest of the session */
-    if (arguments.length == 0)
+    if (arguments.length == 1)
         imagePath = "kamo.png";
 
     KAMO_IMAGE = new Image();
@@ -175,11 +175,11 @@ function initMain(imagePath) {
     KAMO_IMAGE.onload = function () {
 
         /* Create canvas to draw on: */
-        var canvas = document.createElement("canvas");
-        canvas.id = "crazykamo-canvas";
+        var canvas = document.getElementById(canvasName);
         canvas.width = CANVAS_WIDTH
         canvas.height = CANVAS_HEIGHT
         canvas.addEventListener("click", handleEventClick, false);
+        canvas.focus();
         document.body.appendChild(canvas);
         gCanvasContext = canvas.getContext("2d");
 
