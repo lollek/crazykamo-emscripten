@@ -1,5 +1,4 @@
-/* Created by Olle Kvarnstrom 
- * Date: 2013-09-08 
+/* Created by Olle Kvarnstrom
  * Kamo.png image made by Sofie Aid */
 
 /* Constants: */
@@ -41,7 +40,7 @@ function createNewDeck () {
         idList[i] = idList[j];
         idList[j] = tmp;
     }
-    
+
     /* Every created card gets a random id and rotation: */
     i = 0;
     gDeck = [new Card(i++, Math.floor(Math.random() * ROTATIONS), idList.pop())
@@ -110,7 +109,7 @@ function drawDeck (drawList) {
         }
         gCanvasContext.rotate(Math.PI / 2);
     }
-    
+
     /* Draw a grid:
      * We'll use this as a way of highlighting cards later */
     gCanvasContext.beginPath();
@@ -125,12 +124,24 @@ function drawDeck (drawList) {
 
 }
 
+/** getMousePos(e)
+ * Return { x: #, y: # }, being mouse x and y inside the canvas
+ * @e event */
+function getMousePos(e) {
+  var rect = gCanvasContext.canvas.getBoundingClientRect();
+  return {
+    x: e.clientX - rect.left,
+    y: e.clientY - rect.top
+  };
+}
+
 /** handleEventClick()
  * Pretty self explanatory, handle mouseclick events
  * @e event */
 function handleEventClick(e) {
-    var newFocus = (Math.floor(e.pageX / CARD_SIZE) 
-                    + Math.floor(e.pageY / CARD_SIZE) * CARDS_PER_ROW);
+  var pos = getMousePos(e);
+  var newFocus = (Math.floor(pos.x / CARD_SIZE) +
+                  Math.floor(pos.y / CARD_SIZE) * CARDS_PER_ROW);
 
     /* Clicking a Card twice will rotate it clockwise: */
     if (gCursorFocus == newFocus) {
@@ -164,12 +175,6 @@ function handleEventClick(e) {
 }
 
 function initMain(canvasName, imagePath) {
-    /* Load image of chameleons: 
-     * We MUST wait for the image to load before continuing 
-     * otherwise it will just ignore the image for the rest of the session */
-    if (arguments.length == 1)
-        imagePath = "kamo.png";
-
     KAMO_IMAGE = new Image();
     KAMO_IMAGE.src = imagePath;
     KAMO_IMAGE.onload = function () {
