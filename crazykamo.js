@@ -19,41 +19,112 @@ var gCursorFocus = -1;
  * @param pos position on the game board (0-8)
  * @param r rotation of card
  * @param id position on the source image (0-8) */
-function Card(pos, r, id) {
+var Card = function(pos, r, id) {
     this.pos = pos;
     this.r = r;
     this.id = id;
-}
+};
 
-/** createNewDeck() 
- * shuffles the deck of Cards (gDeck) */
-function createNewDeck () {
+/** Deck()
+ * A deck of 9 cards */
+var Deck = function() {
+  var ids = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
-    /* List of available ids:
-     * We'll shuffle it and then pop to get a random id each time
-     * Since no one has bothered to implement a shuffle method in js
-     * We'll use a Knuth shuffle here */
-    var idList = [0, 1, 2, 3, 4, 5, 6, 7, 8];
-    for (var i = idList.length, j, tmp; i;) {
-        j = Math.floor(Math.random() * i--);
-        tmp = idList[i];
-        idList[i] = idList[j];
-        idList[j] = tmp;
+  function randomRotation() { return Math.floor(Math.random() * ROTATIONS); }
+  function next(list) { return list.splice(Math.random() * list.length, 1)[0]; }
+
+  this.cards = [
+    new Card(0, randomRotation(), next(ids))
+   ,new Card(1, randomRotation(), next(ids))
+   ,new Card(2, randomRotation(), next(ids))
+   ,new Card(3, randomRotation(), next(ids))
+   ,new Card(4, randomRotation(), next(ids))
+   ,new Card(5, randomRotation(), next(ids))
+   ,new Card(6, randomRotation(), next(ids))
+   ,new Card(7, randomRotation(), next(ids))
+   ,new Card(8, randomRotation(), next(ids))
+  ];
+};
+
+/** Deck.rotate(cardPos)
+ * Rotate card clockwise
+ * @param cardPos card in which position to rotate */
+Deck.prototype.rotate = function(cardPos) {
+  for (var i = 0; i < this.cards.length; ++i)
+    if (cardPos == this.cards[i].pos) {
+      this.cards[i].r = (this.cards[i].r +ROTATIONS +1) % ROTATIONS;
+      this.draw();
+      return;
     }
+};
 
-    /* Every created card gets a random id and rotation: */
-    i = 0;
-    gDeck = [new Card(i++, Math.floor(Math.random() * ROTATIONS), idList.pop())
-            ,new Card(i++, Math.floor(Math.random() * ROTATIONS), idList.pop())
-            ,new Card(i++, Math.floor(Math.random() * ROTATIONS), idList.pop())
-            ,new Card(i++, Math.floor(Math.random() * ROTATIONS), idList.pop())
-            ,new Card(i++, Math.floor(Math.random() * ROTATIONS), idList.pop())
-            ,new Card(i++, Math.floor(Math.random() * ROTATIONS), idList.pop())
-            ,new Card(i++, Math.floor(Math.random() * ROTATIONS), idList.pop())
-            ,new Card(i++, Math.floor(Math.random() * ROTATIONS), idList.pop())
-            ,new Card(i++, Math.floor(Math.random() * ROTATIONS), idList.pop())
-            ];
-}
+/** Deck.swap(cardPos1, cardPos2)
+ * Swap the place of card1 with card2 */
+Deck.prototype.swap = function(cardPos1, cardPos2) {
+  for (var i = 0; i < this.cards.length; ++i)
+    if (this.cards[i].pos == cardPos1)
+      var card1 = i;
+    else if (this.cards[i].pos == cardPos2)
+      var card2 = i;
+
+  if (card1 === undefined || card2 === undefined)
+    return;
+
+  var tmp = this.cards[card1].pos;
+  this.cards[card1].pos = this.cards[card2].pos;
+  this.cards[card2].pos = tmp;
+  this.draw();
+};
+
+/** draw() 
+ * Draw all cards to the canvas 
+ *
+ * Since I have no idea how to rotate an Image object we'll 
+ * rotate the canvas 4 times and blit the relevant cards on 
+ * the relevant rotation */
+Deck.prototype.draw = function() {
+  for (var r = 0; r < ROTATIONS; ++r) {
+    for (var i = 0; i < this.cards.length; ++i) {
+      if (this.cards[i].r != r)
+        continue;
+
+      var sourceX = this.cards[i].id % CARDS_PER_ROW;
+      var sourceY = Math.floor(this.cards[i].id / CARDS_PER_ROW);
+      if (r == 0) {
+        var targetX = this.cards[i].pos % CARDS_PER_ROW;
+        var targetY = Math.floor(this.cards[i].pos / CARDS_PER_ROW);
+      } else if (r == 1) {
+        var targetX = Math.floor(this.cards[i].pos / CARDS_PER_ROW);
+        var targetY = -((this.cards[i].pos % CARDS_PER_ROW) +1);
+      } else if (r == 2) {
+        var targetX = -((this.cards[i].pos % CARDS_PER_ROW) +1);
+        var targetY = -(Math.floor(this.cards[i].pos / CARDS_PER_ROW) +1);
+      } else if (r == 3) {
+        var targetX = -(Math.floor(this.cards[i].pos / CARDS_PER_ROW) +1);
+        var targetY = this.cards[i].pos % CARDS_PER_ROW;
+      }
+
+      gCanvasContext.drawImage(
+          KAMO_IMAGE,
+          sourceX * CARD_SIZE, sourceY * CARD_SIZE, CARD_SIZE, CARD_SIZE,
+          targetX * CARD_SIZE, targetY * CARD_SIZE, CARD_SIZE, CARD_SIZE);
+    }
+    gCanvasContext.rotate(Math.PI / 2);
+  }
+
+  /* Draw a grid:
+   * We'll use this as a way of highlighting cards later */
+  gCanvasContext.beginPath();
+  for (var i = 0; i <= CARDS_PER_ROW; i++) {
+    gCanvasContext.moveTo(i * CARD_SIZE, 0);
+    gCanvasContext.lineTo(i * CARD_SIZE, CARDS_PER_ROW * CARD_SIZE);
+    gCanvasContext.moveTo(0, i * CARD_SIZE);
+    gCanvasContext.lineTo(CARDS_PER_ROW * CARD_SIZE, i * CARD_SIZE);
+  }
+  gCanvasContext.strokeStyle = "grey";
+  gCanvasContext.stroke();
+
+};
 
 /** drawOutline() 
  * Draw a nice box around a Card
@@ -64,64 +135,6 @@ function drawOutline (cardNumber, color) {
     var y = Math.floor(cardNumber / CARDS_PER_ROW) * CARD_SIZE;
     gCanvasContext.strokeStyle = color;
     gCanvasContext.strokeRect(x, y, CARD_SIZE, CARD_SIZE);
-}
-
-/** drawDeck() 
- * Draw all cards to the canvas 
- * @param drawList list of cards to draw 
- *
- * Since I have no idea how to rotate an Image object we'll 
- * rotate the canvas 4 times and blit the relevant cards on 
- * the relevant rotation */
-function drawDeck (drawList) {
-    var sourceX, sourceY, targetX, targetY;
-    for (var r = 0; r < ROTATIONS; r++) {
-        for (var i = drawList.length -1; i >= 0; i--) {
-            if (drawList[i].r == r) {
-                sourceX = (drawList[i].id % CARDS_PER_ROW) * CARD_SIZE;
-                sourceY = Math.floor(drawList[i].id / CARDS_PER_ROW) * CARD_SIZE;
-                switch(r) {
-                case 0:
-                    targetX = (drawList[i].pos % CARDS_PER_ROW) * CARD_SIZE;
-                    targetY = Math.floor(drawList[i].pos / CARDS_PER_ROW)
-                      * CARD_SIZE;
-                    break;
-                case 1:
-                    targetX = Math.floor(drawList[i].pos / CARDS_PER_ROW) 
-                      * CARD_SIZE;
-                    targetY = -((drawList[i].pos % CARDS_PER_ROW) +1) * CARD_SIZE;
-                    break;
-                case 2:
-                    targetX = -((drawList[i].pos % CARDS_PER_ROW) +1) * CARD_SIZE;
-                    targetY = -(Math.floor(drawList[i].pos / CARDS_PER_ROW) +1) 
-                        * CARD_SIZE;
-                    break;
-                case 3:
-                    targetX = -(Math.floor(drawList[i].pos / CARDS_PER_ROW) +1) 
-                        * CARD_SIZE;
-                    targetY = (drawList[i].pos % CARDS_PER_ROW) * CARD_SIZE;
-                    break;
-                }
-                gCanvasContext.drawImage(KAMO_IMAGE, 
-                                         sourceX, sourceY, CARD_SIZE, CARD_SIZE, 
-                                         targetX, targetY, CARD_SIZE, CARD_SIZE);
-            }
-        }
-        gCanvasContext.rotate(Math.PI / 2);
-    }
-
-    /* Draw a grid:
-     * We'll use this as a way of highlighting cards later */
-    gCanvasContext.beginPath();
-    for (var i = 0; i <= CARDS_PER_ROW; i++) {
-        gCanvasContext.moveTo(i * CARD_SIZE, 0);
-        gCanvasContext.lineTo(i * CARD_SIZE, CARDS_PER_ROW * CARD_SIZE);
-        gCanvasContext.moveTo(0, i * CARD_SIZE);
-        gCanvasContext.lineTo(CARDS_PER_ROW * CARD_SIZE, i * CARD_SIZE);
-    }
-    gCanvasContext.strokeStyle = "grey";
-    gCanvasContext.stroke();
-
 }
 
 /** getMousePos(e)
@@ -145,13 +158,8 @@ function handleEventClick(e) {
 
     /* Clicking a Card twice will rotate it clockwise: */
     if (gCursorFocus == newFocus) {
-        for (var i = gDeck.length -1; i >= 0; i--)
-            if (gCursorFocus == gDeck[i].pos) {
-                gDeck[i].r = (gDeck[i].r + ROTATIONS + 1) % ROTATIONS;
-                drawDeck(gDeck);
-                gCursorFocus = -1;
-                break;
-            }
+      gDeck.rotate(gCursorFocus);
+      gCursorFocus = -1;
 
     /* If no Card is selected: Select it: */
     } else if (gCursorFocus == -1) {
@@ -160,16 +168,7 @@ function handleEventClick(e) {
 
     /* If a Card is already selected, swap them: */
     } else {
-        for (var i = gDeck.length -1 ; i >= 0 ; i--) {
-            if (gCursorFocus == gDeck[i].pos)
-                var cardPos1 = i;
-            else if (newFocus == gDeck[i].pos)
-                var cardPos2 = i;
-        }
-        var tmp = gDeck[cardPos1].pos;
-        gDeck[cardPos1].pos = gDeck[cardPos2].pos
-        gDeck[cardPos2].pos = tmp;
-        drawDeck(gDeck);
+        gDeck.swap(newFocus, gCursorFocus);
         gCursorFocus = -1;
     }
 }
@@ -188,8 +187,8 @@ function initMain(canvasName, imagePath) {
         gCanvasContext = canvas.getContext("2d");
 
         /* Init and draw gDeck */
-        createNewDeck();
-        drawDeck(gDeck);
+        gDeck = new Deck();
+        gDeck.draw();
      }
 
 }
