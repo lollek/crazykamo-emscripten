@@ -9,5 +9,3 @@ There are 2 solution (with 4 rotations each), but it's really much harder than i
 How to play:
 Select one card and click another to swap them
 Click a card twice to rotate it 90 degrees clockwise
-
-Can be played at http://iix3.org/crazykamo/
