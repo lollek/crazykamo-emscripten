@@ -1,6 +1,8 @@
 #ifndef DECK_H
 #define DECK_H
 
+#include "card.h"
+
 #define NUM_CARDS 9
 #define CARDS_PER_ROW 3
 #define CARDS_PER_COLUMN 3
