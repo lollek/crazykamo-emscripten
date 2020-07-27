@@ -1,2 +1,2 @@
-id_rsa
-id_rsa.pub
+src/*.o
+target/main*

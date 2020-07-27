@@ -7,9 +7,12 @@
 #include <time.h>
 #include <stdbool.h>
 
+#include "card.h"
+#include "deck.h"
+
+// TODO: Cards should be rotated on init. And rotate on doubleclick
+
 size_t const CARD_SIZE = 150;
-size_t const NUM_CARDS = 9;
-size_t const CARDS_PER_ROW = 3;
 size_t const CANVAS_WIDTH = CARD_SIZE * CARDS_PER_ROW;
 size_t const CANVAS_HEIGHT = CARD_SIZE * CARDS_PER_ROW;
 
@@ -24,47 +27,12 @@ SDL_Texture* load_texture(SDL_Renderer* renderer, char const* const path) {
         return 0;
     }
     SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, image);
-    SDL_FreeSurface (image);
+    SDL_FreeSurface(image);
     return tex;
 }
 
 
-typedef struct Card {
-    /*
-     * Position on kamo.png [0..8], like this:
-     * 0 1 2
-     * 3 4 5
-     * 6 7 8
-     */
-    int id;
 
-    /* Position on the screen [0..8], like this:
-     * 0 1 2
-     * 3 4 5
-     * 6 7 8 */
-    int position;
-
-    // Rotation of card [0..3]
-    int rotation;
-} Card;
-
-Card card[NUM_CARDS];
-
-void init_deck() {
-    bool used_positions[NUM_CARDS] = { 0 };
-    for (int i = 0; i < NUM_CARDS; ++i) {
-        card[i].id = i;
-        for (;;) {
-            int random_position = rand() % NUM_CARDS;
-            if (!used_positions[random_position]) {
-                used_positions[random_position] = true;
-                card[i].position = random_position;
-                break;
-            }
-        }
-        card[i].rotation = rand() % 4;
-    }
-}
 
 void draw_screen() {
     SDL_RenderClear(renderer);
@@ -82,7 +50,6 @@ void draw_screen() {
             .w = CARD_SIZE,
             .h = CARD_SIZE,
         };
-        // TODO: Rotation
         SDL_RenderCopy (renderer, image, &src, &dst);
     }
 
@@ -92,7 +59,7 @@ void draw_screen() {
 
 int main() {
     srand(time(NULL));
-    init_deck();
+    deck_init();
 
     SDL_Init(SDL_INIT_VIDEO);
 
