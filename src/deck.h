@@ -9,6 +9,9 @@
 
 extern Card card[NUM_CARDS];
 
+// [0-8] if a card should be highlighted. Else it is -1
+extern int highlighted_card_id;
+
 void deck_init();
 
 #endif /* DECK_H */

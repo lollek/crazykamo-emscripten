@@ -6,6 +6,7 @@
 #include "deck.h"
 
 Card card[NUM_CARDS];
+int highlighted_card_id = -1;
 
 void deck_init() {
     bool used_positions[NUM_CARDS] = { 0 };
