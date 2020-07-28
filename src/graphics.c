@@ -21,17 +21,13 @@ static SDL_Texture* load_texture(SDL_Renderer* renderer, char const* const path)
     return tex;
 }
 
-/**
- * Highlight card with id [0-8]. If -1, nothing is highlighted
- */
-void highlight_card(int id) {
-    if (id == -1) {
+void highlight_card(Card *card) {
+    if (card == NULL) {
         return;
     }
 
-
-    int x_start = (id % 3) * CARD_SIZE;
-    int y_start = (id / 3) * CARD_SIZE;
+    int x_start = (card->position % 3) * CARD_SIZE;
+    int y_start = (card->position / 3) * CARD_SIZE;
 
     int const num_points = 5;
     SDL_Point const points[num_points] = {
@@ -56,26 +52,27 @@ void gfx_exit() {
     SDL_DestroyTexture(image);
 }
 
-void gfx_draw_screen() {
+void gfx_draw_screen(Card *highlighted_card) {
     SDL_RenderClear(renderer);
 
     for (int i = 0; i < NUM_CARDS; ++i) {
+        Card *card = deck_get_card_by_position(i);
         SDL_Rect const src = {
-            .x = (card[i].id % CARDS_PER_ROW) * CARD_SIZE,
-            .y = (card[i].id / CARDS_PER_ROW) * CARD_SIZE,
+            .x = (card->id % CARDS_PER_ROW) * CARD_SIZE,
+            .y = (card->id / CARDS_PER_ROW) * CARD_SIZE,
             .w = CARD_SIZE,
             .h = CARD_SIZE,
         };
         SDL_Rect const dst = {
-            .x = (card[i].position % CARDS_PER_ROW) * CARD_SIZE,
-            .y = (card[i].position / CARDS_PER_ROW) * CARD_SIZE,
+            .x = (card->position % CARDS_PER_ROW) * CARD_SIZE,
+            .y = (card->position / CARDS_PER_ROW) * CARD_SIZE,
             .w = CARD_SIZE,
             .h = CARD_SIZE,
         };
         SDL_RenderCopy (renderer, image, &src, &dst);
     }
 
-    highlight_card(highlighted_card_id);
+    highlight_card(highlighted_card);
 
     SDL_RenderPresent(renderer);
 }

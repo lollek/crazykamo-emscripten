@@ -8,6 +8,6 @@
 
 void gfx_init();
 void gfx_exit();
-void gfx_draw_screen();
+void gfx_draw_screen(Card *highlighted_card);
 
 #endif /* GRAPHICS_H */

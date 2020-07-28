@@ -15,29 +15,32 @@
 
 // TODO: Cards should be rotated on init. And rotate on doubleclick
 
-void handle_click(int x, int y) {
-    int prev_selected_card = highlighted_card_id;
-    int curr_selected_card = (x / CARD_SIZE) + ((y / CARD_SIZE) * 3);
+static Card *prev_selected_card = NULL;
 
-    if (prev_selected_card == -1) {
+void handle_click(int x, int y) {
+    Card *curr_selected_card = deck_get_card_by_coordinate(x / CARD_SIZE, y / CARD_SIZE);
+    if (curr_selected_card == NULL) {
+        debug("handle_click: Card id out of bounds");
+        return;
+    }
+
+    if (prev_selected_card == NULL) {
         // Select card
 
-        debug("Selected card at position %d\n", curr_selected_card);
-        highlighted_card_id = curr_selected_card;
+        debug("Selected card at position %d\n", curr_selected_card->position);
+        prev_selected_card = curr_selected_card;
     } else if (prev_selected_card == curr_selected_card) {
         // Rotate card
 
-        debug("Rotated card at position %d\n", curr_selected_card);
-        card[curr_selected_card].rotation = (card[curr_selected_card].rotation + 1) % 4;
-        highlighted_card_id = -1;
+        debug("Rotated card at position %d\n", curr_selected_card->position);
+        deck_rotate_card(curr_selected_card);
+        prev_selected_card = NULL;
     } else {
         // Swap cards
 
-        debug("Swap cards at position %d and %d\n", curr_selected_card, prev_selected_card);
-        int tmp = card[prev_selected_card].position;
-        card[prev_selected_card].position = card[curr_selected_card].position;
-        card[curr_selected_card].position = tmp;
-        highlighted_card_id = -1;
+        debug("Swap cards at position %d and %d\n", curr_selected_card->position, prev_selected_card->position);
+        deck_swap_cards(curr_selected_card, prev_selected_card);
+        prev_selected_card = NULL;
     }
 
 }
@@ -52,7 +55,7 @@ static void main_loop(void) {
             case SDL_KEYDOWN:
                 if (event.key.keysym.sym == SDLK_ESCAPE) {
                     debug("Escape pressed\n");
-                    highlighted_card_id = -1;
+                    prev_selected_card = NULL;
                 }
                 break;
             default:
@@ -60,7 +63,7 @@ static void main_loop(void) {
         }
     }
 
-    gfx_draw_screen();
+    gfx_draw_screen(prev_selected_card);
 }
 
 int main() {
@@ -71,7 +74,7 @@ int main() {
     debug("Starting SDL\n");
     SDL_Init(SDL_INIT_VIDEO);
     gfx_init();
-    gfx_draw_screen();
+    gfx_draw_screen(prev_selected_card);
 
     debug("Starting emscripten main loop\n");
     emscripten_set_main_loop(&main_loop, 30, 1);
