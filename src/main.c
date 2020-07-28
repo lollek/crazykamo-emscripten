@@ -13,8 +13,6 @@
 #include "graphics.h"
 #include "debug.h"
 
-// TODO: Cards should be rotated on init. And rotate on doubleclick
-
 static Card *prev_selected_card = NULL;
 
 void handle_click(int x, int y) {

@@ -69,7 +69,8 @@ void gfx_draw_screen(Card *highlighted_card) {
             .w = CARD_SIZE,
             .h = CARD_SIZE,
         };
-        SDL_RenderCopy (renderer, image, &src, &dst);
+        double const angle = 90 * card->rotation;
+        SDL_RenderCopyEx(renderer, image, &src, &dst, angle, NULL, SDL_FLIP_NONE);
     }
 
     highlight_card(highlighted_card);
