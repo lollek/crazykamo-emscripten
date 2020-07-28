@@ -9,17 +9,25 @@ OBJFILES = $(addsuffix .o, $(basename $(CFILES)))
 all:	build
 .PHONY: all
 
-build:	$(OBJFILES)
+debug: CFLAGS += -DDEBUG -g
+debug: build
+
+build:	$(OBJFILES) ctags
 	$(CC) $(LDFLAGS) $(OBJFILES) -o target/main.html
 .PHONY: build
 
 run:	build
 	$ python3 -m http.server 8080 --directory=target
-.PHONE: run
+.PHONY: run
 
 clean:
 	@$(RM) src/*.o
 	@$(RM) target/main*
+.PHONY: clean
 
 .c.o:
 	$(CC) $(CFLAGS) -c -o $*.o $*.c
+
+ctags:
+	@type ctags >/dev/null 2>&1 && ctags -R * || true
+.PHONY: ctags

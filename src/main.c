@@ -11,6 +11,7 @@
 #include "card.h"
 #include "deck.h"
 #include "graphics.h"
+#include "debug.h"
 
 // TODO: Cards should be rotated on init. And rotate on doubleclick
 
@@ -21,15 +22,18 @@ void handle_click(int x, int y) {
     if (prev_selected_card == -1) {
         // Select card
 
+        debug("Selected card at position %d\n", curr_selected_card);
         highlighted_card_id = curr_selected_card;
     } else if (prev_selected_card == curr_selected_card) {
         // Rotate card
 
+        debug("Rotated card at position %d\n", curr_selected_card);
         card[curr_selected_card].rotation = (card[curr_selected_card].rotation + 1) % 4;
         highlighted_card_id = -1;
     } else {
         // Swap cards
 
+        debug("Swap cards at position %d and %d\n", curr_selected_card, prev_selected_card);
         int tmp = card[prev_selected_card].position;
         card[prev_selected_card].position = card[curr_selected_card].position;
         card[curr_selected_card].position = tmp;
@@ -38,52 +42,44 @@ void handle_click(int x, int y) {
 
 }
 
-EM_BOOL main_loop(double time, void *userdata) {
+static void main_loop(void) {
     SDL_Event event;
-    bool has_pending_event = SDL_PollEvent(&event) != 0;
-    if (has_pending_event) {
-        return EM_TRUE;
+    while (SDL_PollEvent(&event)) {
+        switch (event.type) {
+            case SDL_MOUSEBUTTONDOWN:
+                handle_click(event.button.x, event.button.y);
+                break;
+            case SDL_KEYDOWN:
+                if (event.key.keysym.sym == SDLK_ESCAPE) {
+                    debug("Escape pressed\n");
+                    highlighted_card_id = -1;
+                }
+                break;
+            default:
+                return;
+        }
     }
-
-    switch (event.type) {
-        case SDL_MOUSEBUTTONDOWN:
-            handle_click(event.button.x, event.button.y);
-            break;
-        case SDL_KEYDOWN:
-            if (event.key.keysym.sym == SDLK_ESCAPE) {
-                highlighted_card_id = -1;
-            }
-            break;
-        default:
-            return EM_TRUE;
-    }
-
 
     gfx_draw_screen();
-    return EM_TRUE;
 }
 
 int main() {
+    debug("Starting\n");
     srand(time(NULL));
     deck_init();
 
+    debug("Starting SDL\n");
     SDL_Init(SDL_INIT_VIDEO);
     gfx_init();
     gfx_draw_screen();
 
-    emscripten_request_animation_frame_loop(main_loop, NULL);
+    debug("Starting emscripten main loop\n");
+    emscripten_set_main_loop(&main_loop, 30, 1);
+
 #if 0
-#ifdef __EMCRIPTEN__
-#else
-    bool running = true;
-    while (running) {
-        running = main_loop(0, NULL);
-    }
-#endif
-
-
-    gfx_exit();
-    SDL_Quit();
+       gfx_exit();
+       SDL_Quit();
+       debug("Exiting\n");
 #endif
     return 0;
 }
