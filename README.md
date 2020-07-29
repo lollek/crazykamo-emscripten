@@ -18,4 +18,4 @@ Requires:
 
 Run `make` and the html/javascript can be found in the target/-folder. If you
 have python3 installed, you can run `make run` and then navigate to
-http://localhost:8080/main.html to play
+http://localhost:8080/ to play
