@@ -1,7 +1,7 @@
 CC = emcc
 
 CFLAGS = -O2
-LDFLAGS = -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='["png"]' --preload-file assets
+LDFLAGS = -s MODULARIZE=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='["png"]' --preload-file assets
 
 CFILES = $(wildcard src/*.c)
 OBJFILES = $(addsuffix .o, $(basename $(CFILES)))
@@ -13,7 +13,7 @@ debug: CFLAGS += -DDEBUG -g
 debug: build
 
 build:	$(OBJFILES) ctags
-	$(CC) $(LDFLAGS) $(OBJFILES) -o target/main.html
+	$(CC) $(LDFLAGS) $(OBJFILES) -o target/main.js
 .PHONY: build
 
 run:	build
