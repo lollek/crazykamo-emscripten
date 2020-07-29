@@ -75,7 +75,7 @@ int main() {
     gfx_draw_screen(prev_selected_card);
 
     debug("Starting emscripten main loop\n");
-    emscripten_set_main_loop(&main_loop, 30, 1);
+    emscripten_set_main_loop(&main_loop, 0, 1);
 
 #if 0
        gfx_exit();
